@@ -216,7 +216,7 @@ func FilterByExtension(files []*FileInfo, ext string) []*FileInfo {
 		return files
 	}
 
-	ext := strings.ToLower(strings.TrimPrefix(ext, "."))
+	ext = strings.ToLower(strings.TrimPrefix(ext, "."))
 	filtered := make([]*FileInfo, 0)
 	for _, f := range files {
 		if strings.TrimPrefix(strings.ToLower(f.Ext), ".") == ext {

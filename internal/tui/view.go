@@ -7,11 +7,12 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/OmkarVijayBagade/forter/internal/scanner"
 )
 
 // renderHeader renders the application header
 func (m *Model) renderHeader() string {
-	title := "📁 organize"
+	title := "📁 forter"
 	subtitle := fmt.Sprintf(" %s | Files: %d | Selected: %d",
 		m.rootPath,
 		len(m.files),
@@ -34,8 +35,6 @@ func (m *Model) renderHeader() string {
 
 // renderFooter renders the footer with keybindings
 func (m *Model) renderFooter() string {
-	km := DefaultKeyMap()
-
 	// Build keybinding help based on current mode
 	var bindings []string
 
@@ -143,7 +142,7 @@ func (m *Model) renderFileList(width, height int) string {
 }
 
 // renderFileItem renders a single file item
-func (m *Model) renderFileItem(file *scanner.FileInfo, isCursor, idx int) string {
+func (m *Model) renderFileItem(file *scanner.FileInfo, isCursor bool, idx int) string {
 	// Find actual index
 	actualIdx := -1
 	for i, f := range m.files {
