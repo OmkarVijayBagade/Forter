@@ -10,20 +10,16 @@ import (
 	"github.com/OmkarVijayBagade/forter/internal/scanner"
 )
 
-// logoASCII is the ASCII art banner for Forter
-const logoASCII = `
-╔═══════════════════════════════════════════════════════════╗
-║                                                           ║
-║   ███████╗ ██████╗ ██████╗ ████████╗███████╗██████╗       ║
-║   ██╔════╝██╔═══██╗██╔══██╗╚══██╔══╝██╔════╝██╔══██╗      ║
-║   █████╗  ██║   ██║██████╔╝   ██║   █████╗  ██████╔╝      ║
-║   ██╔══╝  ██║   ██║██╔══██╗   ██║   ██╔══╝  ██╔══██╗      ║
-║   ██║     ╚██████╔╝██║  ██║   ██║   ███████╗██║  ██║      ║
-║   ╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝      ║
-║                                                           ║
-║           Fast Organized Terminal Explorer                ║
-╚═══════════════════════════════════════════════════════════╝
-`
+// logoASCII is the compact ASCII art banner for Forter
+const logoASCII = `╔═══════════════════════════════════════════════════════════╗
+║   ███████╗ ██████╗ ███████╗████████╗███████╗██████╗     ║
+║   ██╔════╝██╔═══██╗██╔════╝╚══██╔══╝██╔════╝██╔══██╗    ║
+║   █████╗  ██║   ██║█████╗     ██║   █████╗  ██████╔╝    ║
+║   ██╔══╝  ██║   ██║██╔══╝     ██║   ██╔══╝  ██╔══██╗    ║
+║   ██║     ╚██████╔╝██║        ██║   ███████╗██║  ██║    ║
+║   ╚═╝      ╚═════╝ ╚═╝        ╚═╝   ╚══════╝╚═╝  ╚═╝    ║
+║          Fast Organized Terminal Explorer                 ║
+╚═══════════════════════════════════════════════════════════╝`
 
 // renderLogo renders the ASCII art logo (always visible)
 func (m *Model) renderLogo() string {
@@ -31,7 +27,9 @@ func (m *Model) renderLogo() string {
 		Foreground(ColorPrimary).
 		Bold(true).
 		Align(lipgloss.Center).
-		Width(m.width - 2)
+		Width(m.width).
+		Height(9).
+		MaxHeight(9)
 	
 	return logoStyle.Render(logoASCII)
 }
@@ -99,9 +97,12 @@ func (m *Model) renderMain() string {
 		return m.renderCompletionScreen(m.width - 4)
 	}
 	
-	availableHeight := m.height - 15 // Subtract logo (12) + header (2) + footer (1)
-	if availableHeight < 10 {
-		availableHeight = 10 // Minimum height
+	availableHeight := m.height - 12 // Subtract logo (9) + header (2) + footer (1)
+	if availableHeight > m.height/2 {
+		availableHeight = m.height / 2 // Cap at half terminal height
+	}
+	if availableHeight < 8 {
+		availableHeight = 8 // Minimum height
 	}
 	
 	// Calculate panel widths
@@ -182,7 +183,7 @@ func (m *Model) renderCompletionScreen(width int) string {
 	
 	return lipgloss.NewStyle().
 		Width(width).
-		Height(m.height - 20).
+		Height(m.height - 14).
 		Align(lipgloss.Center).
 		Render(content)
 }
