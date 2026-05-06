@@ -309,19 +309,16 @@ func (m *Model) View() string {
 		return "Loading..."
 	}
 
-	// Build layout
+	// Build layout - logo always at top
 	var sections []string
 
-	// Logo (only shown initially)
-	logo := m.renderLogo()
-	if logo != "" {
-		sections = append(sections, logo)
-	}
+	// Logo (always visible at top)
+	sections = append(sections, m.renderLogo())
 
 	// Header
 	sections = append(sections, m.renderHeader())
 
-	// Main content
+	// Main content (height adjusted for logo)
 	mainContent := m.renderMain()
 	sections = append(sections, mainContent)
 
