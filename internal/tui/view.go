@@ -10,6 +10,36 @@ import (
 	"github.com/OmkarVijayBagade/forter/internal/scanner"
 )
 
+// logoASCII is the ASCII art banner for Forter
+const logoASCII = `
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║   ███████╗ ██████╗ ██████╗ ████████╗███████╗██████╗       ║
+║   ██╔════╝██╔═══██╗██╔══██╗╚══██╔══╝██╔════╝██╔══██╗      ║
+║   █████╗  ██║   ██║██████╔╝   ██║   █████╗  ██████╔╝      ║
+║   ██╔══╝  ██║   ██║██╔══██╗   ██║   ██╔══╝  ██╔══██╗      ║
+║   ██║     ╚██████╔╝██║  ██║   ██║   ███████╗██║  ██║      ║
+║   ╚═╝      ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝      ║
+║                                                           ║
+║           Fast Organized Terminal Explorer                ║
+╚═══════════════════════════════════════════════════════════╝
+`
+
+// renderLogo renders the ASCII art logo
+func (m *Model) renderLogo() string {
+	logoStyle := lipgloss.NewStyle().
+		Foreground(ColorPrimary).
+		Bold(true).
+		Align(lipgloss.Center)
+	
+	// Only show logo on first render or when no files loaded
+	if len(m.files) > 0 {
+		return ""
+	}
+	
+	return logoStyle.Render(logoASCII)
+}
+
 // renderHeader renders the application header
 func (m *Model) renderHeader() string {
 	title := "📁 forter"

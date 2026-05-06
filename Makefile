@@ -5,7 +5,16 @@
 # Variables
 BINARY_NAME=forter
 MAIN_PATH=cmd/forter/main.go
-INSTALL_PATH=$(GOPATH)/bin
+
+# Detect install path: use GOPATH/bin if set, otherwise ~/go/bin, fallback to /usr/local/bin
+ifeq ($(GOPATH),)
+	GOPATH := $(shell go env GOPATH 2>/dev/null || echo "")
+endif
+ifeq ($(GOPATH),)
+	INSTALL_PATH := $(HOME)/go/bin
+else
+	INSTALL_PATH := $(GOPATH)/bin
+endif
 VERSION?=dev
 COMMIT=$(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_DATE=$(shell date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -94,11 +103,13 @@ vet:
 	@echo "$(BLUE)Running go vet...$(NC)"
 	@go vet ./...
 
-## install: Install binary to GOPATH/bin
+## install: Install binary to install path (default: ~/go/bin or $GOPATH/bin)
 install: build
 	@echo "$(BLUE)Installing to $(INSTALL_PATH)...$(NC)"
+	@mkdir -p $(INSTALL_PATH)
 	@cp dist/$(BINARY_NAME) $(INSTALL_PATH)/$(BINARY_NAME)
-	@echo "$(GREEN)Installed to $(INSTALL_PATH)/$(BINARY_NAME)$(NC)"
+	@echo "$(GREEN)✓ Installed to $(INSTALL_PATH)/$(BINARY_NAME)$(NC)"
+	@echo "$(YELLOW)Make sure $(INSTALL_PATH) is in your PATH$(NC)"
 
 ## uninstall: Remove binary from GOPATH/bin
 uninstall:

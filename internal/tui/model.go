@@ -312,6 +312,12 @@ func (m *Model) View() string {
 	// Build layout
 	var sections []string
 
+	// Logo (only shown initially)
+	logo := m.renderLogo()
+	if logo != "" {
+		sections = append(sections, logo)
+	}
+
 	// Header
 	sections = append(sections, m.renderHeader())
 
