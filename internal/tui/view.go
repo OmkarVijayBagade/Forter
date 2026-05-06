@@ -25,17 +25,13 @@ const logoASCII = `
 ╚═══════════════════════════════════════════════════════════╝
 `
 
-// renderLogo renders the ASCII art logo
+// renderLogo renders the ASCII art logo (always visible)
 func (m *Model) renderLogo() string {
 	logoStyle := lipgloss.NewStyle().
 		Foreground(ColorPrimary).
 		Bold(true).
-		Align(lipgloss.Center)
-	
-	// Only show logo on first render or when no files loaded
-	if len(m.files) > 0 {
-		return ""
-	}
+		Align(lipgloss.Center).
+		Width(m.width - 2)
 	
 	return logoStyle.Render(logoASCII)
 }
@@ -81,6 +77,9 @@ func (m *Model) renderFooter() string {
 	} else if m.mode == ModeConfirm {
 		bindings = append(bindings, m.renderKey("enter", "confirm"))
 		bindings = append(bindings, m.renderKey("c/esc", "cancel"))
+	} else if m.mode == ModeDone {
+		bindings = append(bindings, m.renderKey("enter", "return to files"))
+		bindings = append(bindings, m.renderKey("q", "quit"))
 	}
 
 	return m.styles.Footer.Render(strings.Join(bindings, ""))
@@ -95,7 +94,15 @@ func (m *Model) renderKey(key, desc string) string {
 
 // renderMain renders the main content area
 func (m *Model) renderMain() string {
-	availableHeight := m.height - 2 // Subtract header and footer
+	// Show completion screen when done
+	if m.mode == ModeDone {
+		return m.renderCompletionScreen(m.width - 4)
+	}
+	
+	availableHeight := m.height - 15 // Subtract logo (12) + header (2) + footer (1)
+	if availableHeight < 10 {
+		availableHeight = 10 // Minimum height
+	}
 	
 	// Calculate panel widths
 	totalWidth := m.width - 4 // Account for borders
@@ -103,8 +110,8 @@ func (m *Model) renderMain() string {
 	rightWidth := totalWidth - leftWidth
 
 	// Render panels
-	leftPanel := m.renderFileList(leftWidth, availableHeight-1)
-	rightPanel := m.renderRightPanel(rightWidth, availableHeight-1)
+	leftPanel := m.renderFileList(leftWidth, availableHeight)
+	rightPanel := m.renderRightPanel(rightWidth, availableHeight)
 
 	// Combine side by side
 	mainContent := lipgloss.JoinHorizontal(lipgloss.Top, leftPanel, rightPanel)
@@ -113,6 +120,71 @@ func (m *Model) renderMain() string {
 	statusBar := m.renderStatusBar(m.width - 4)
 
 	return lipgloss.JoinVertical(lipgloss.Top, mainContent, statusBar)
+}
+
+// renderCompletionScreen shows the post-organization menu
+func (m *Model) renderCompletionScreen(width int) string {
+	total, success, failed, skipped := m.organizer.GetStats()
+	
+	// Title
+	titleStyle := lipgloss.NewStyle().
+		Foreground(ColorPrimary).
+		Bold(true).
+		Width(width).
+		Align(lipgloss.Center)
+	
+	title := titleStyle.Render("\n✅ Organization Complete!\n")
+	
+	// Stats box
+	statsStyle := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(ColorSuccess).
+		Padding(1, 2).
+		Width(width - 10)
+	
+	statsContent := fmt.Sprintf(`📊 Results:
+
+   Total files processed: %d
+   ✅ Successfully organized: %d
+   ⚠️  Skipped: %d
+   ❌ Failed: %d
+`, total, success, skipped, failed)
+	
+	statsBox := statsStyle.Render(statsContent)
+	
+	// Menu options
+	menuStyle := lipgloss.NewStyle().
+		Foreground(ColorSecondary).
+		Bold(true).
+		Width(width).
+		Align(lipgloss.Center)
+	
+	menu := menuStyle.Render("\n📋 What would you like to do next?\n")
+	
+	// Options
+	optionsStyle := lipgloss.NewStyle().
+		Width(width).
+		Align(lipgloss.Center)
+	
+	options := optionsStyle.Render(`   [Enter] Return to file list
+   [Q] Quit forter
+`)
+	
+	// Combine all
+	content := lipgloss.JoinVertical(lipgloss.Center,
+		title,
+		"",
+		statsBox,
+		"",
+		menu,
+		options,
+	)
+	
+	return lipgloss.NewStyle().
+		Width(width).
+		Height(m.height - 20).
+		Align(lipgloss.Center).
+		Render(content)
 }
 
 // renderFileList renders the file list panel

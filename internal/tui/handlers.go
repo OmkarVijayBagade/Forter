@@ -40,10 +40,13 @@ func (m *Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case ModeDone:
-		if key.Matches(msg, km.Enter) || key.Matches(msg, km.Quit) {
+		if key.Matches(msg, km.Enter) {
 			m.mode = ModeNormal
-			// Rescan to refresh
+			// Rescan to refresh file list
 			return m, m.scanFiles()
+		}
+		if key.Matches(msg, km.Quit) {
+			return m, tea.Quit
 		}
 		return m, nil
 
