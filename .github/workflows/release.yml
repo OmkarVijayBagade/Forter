@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+            extension: .exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          output="forter_${{ github.ref_name }}_${{ matrix.goos }}_${{ matrix.goarch }}${{ matrix.extension }}"
+          go build -ldflags "-X main.Version=${{ github.ref_name }} -X main.Commit=${{ github.sha }} -X main.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o $output cmd/forter/main.go
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            zip "${output%.exe}.zip" "$output"
+            echo "artifact=${output%.exe}.zip" >> $GITHUB_OUTPUT
+          else
+            tar -czf "${output}.tar.gz" "$output"
+            echo "artifact=${output}.tar.gz" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: forter-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: forter_*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: forter-*
+          merge-multiple: true
+          path: dist/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+          generate_release_notes: true
+          body: |
+            ## Installation
+
+            ### macOS/Linux (Homebrew)
+            ```bash
+            brew tap OmkarVijayBagade/forter
+            brew install forter
+            ```
+
+            ### Direct Download
+            Download the appropriate binary for your platform below.
+
+            ### Go Install
+            ```bash
+            go install github.com/OmkarVijayBagade/forter/cmd/forter@latest
+            ```
+
+            ## Usage
+            ```bash
+            forter ~/Downloads          # Organize Downloads
+            forter --dry-run ~/Desktop  # Preview changes
+            forter --help               # Show help
+            ```
