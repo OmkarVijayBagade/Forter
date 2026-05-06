@@ -38,14 +38,15 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
+          binary="forter${{ matrix.extension }}"
           output="forter_${{ github.ref_name }}_${{ matrix.goos }}_${{ matrix.goarch }}${{ matrix.extension }}"
-          go build -ldflags "-X main.Version=${{ github.ref_name }} -X main.Commit=${{ github.sha }} -X main.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o $output cmd/forter/main.go
+          go build -ldflags "-X main.Version=${{ github.ref_name }} -X main.Commit=${{ github.sha }} -X main.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o $binary cmd/forter/main.go
           if [ "${{ matrix.goos }}" = "windows" ]; then
-            zip "${output%.exe}.zip" "$output"
-            echo "artifact=${output%.exe}.zip" >> $GITHUB_OUTPUT
+            zip "$output.zip" "$binary"
+            echo "artifact=$output.zip" >> $GITHUB_OUTPUT
           else
-            tar -czf "${output}.tar.gz" "$output"
-            echo "artifact=${output}.tar.gz" >> $GITHUB_OUTPUT
+            tar -czf "$output.tar.gz" "$binary"
+            echo "artifact=$output.tar.gz" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload artifact
